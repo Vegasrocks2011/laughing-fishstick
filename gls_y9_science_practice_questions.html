@@ -1,0 +1,221 @@
+
+<h2 class="sr-only">GL Science Practice Questions Year 9 — 40 random multiple choice questions per session</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#root{padding:1rem 0;max-width:660px;font-family:var(--font-sans)}
+#start{text-align:center;padding:3rem 1rem}
+#start h1{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:.5rem}
+#start p{font-size:15px;color:var(--color-text-secondary);margin-bottom:1.5rem;line-height:1.6}
+#quiz{display:none}
+#end{display:none;text-align:center;padding:3rem 1rem}
+.prog-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary);margin-bottom:6px}
+.prog-bg{background:var(--color-background-secondary);border-radius:99px;height:5px;margin-bottom:1.5rem}
+.prog-fill{background:#1D9E75;border-radius:99px;height:5px;transition:width .35s}
+.q-text{font-size:17px;font-weight:500;color:var(--color-text-primary);line-height:1.55;margin-bottom:1.25rem}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:13px 16px;text-align:left;font-size:15px;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:flex-start;gap:11px;width:100%}
+.opt:hover:not([disabled]){background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+.opt[disabled]{cursor:default}
+.lbl{font-size:13px;font-weight:500;color:var(--color-text-secondary);min-width:16px;padding-top:2px;flex-shrink:0}
+.opt.correct{background:#EAF3DE;border-color:#639922}
+.opt.correct .lbl{color:#3B6D11}
+.opt.wrong{background:#FCEBEB;border-color:#A32D2D}
+.opt.wrong .lbl{color:#791F1F}
+.opt.reveal{background:#EAF3DE;border-color:#639922}
+.opt.reveal .lbl{color:#3B6D11}
+.fb{margin-top:1rem;border-radius:var(--border-radius-md);padding:11px 15px;font-size:14px;line-height:1.5;display:none}
+.fb.ok{background:#EAF3DE;color:#27500A;display:block}
+.fb.no{background:#FCEBEB;color:#501313;display:block}
+.nxt{margin-top:1rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 22px;font-size:14px;font-weight:500;cursor:pointer;color:var(--color-text-primary);display:none}
+.nxt:hover{background:var(--color-background-secondary)}
+.big-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:11px 28px;font-size:15px;font-weight:500;cursor:pointer;color:var(--color-text-primary)}
+.big-btn:hover{background:var(--color-background-secondary)}
+.end-score{font-size:52px;font-weight:500;color:var(--color-text-primary);line-height:1;margin-bottom:8px}
+.end-msg{font-size:15px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+</style>
+
+<div id="root">
+  <div id="start">
+    <h1>GL Science Practice Questions</h1>
+    <p>Year 9 · 40 random questions per session<br>You have 3 attempts per question before the answer is revealed.</p>
+    <button class="big-btn" onclick="startQuiz()">Start</button>
+  </div>
+  <div id="quiz">
+    <div class="prog-meta">
+      <span id="qlabel">Question 1 of 40</span>
+      <span id="slabel">Score: 0</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
+    <div class="q-text" id="qtext"></div>
+    <div class="opts" id="opts"></div>
+    <div class="fb" id="fb"></div>
+    <button class="nxt" id="nxt" onclick="nextQ()"></button>
+  </div>
+  <div id="end">
+    <div class="end-score" id="escore"></div>
+    <div class="end-msg" id="emsg"></div>
+    <button class="big-btn" onclick="startQuiz()">New session</button>
+  </div>
+</div>
+
+<script>
+const BANK = [
+  {q:"Which of these is linked to a higher risk of developing heart disease and lung cancer?",o:["Drinking coffee","Drinking fizzy drinks","Taking aspirin","Smoking cigarettes"],a:3},
+  {q:"Which is an example of muscles moving a bone?",o:["Tam's eyes blinking in sunlight","Roberto's stomach squeezing to break up food","Marek's heart pumping blood","Jack's jaw chewing a carrot"],a:3},
+  {q:"What are the two main jobs of the skeletal system?",o:["To support and protect the organs of the body","To digest food and absorb nutrients","To transport nutrients and defend from disease","To sense changes and move muscles"],a:0},
+  {q:"James Watson and Francis Crick worked out the structure of DNA by looking at previous discoveries. What does this tell us about scientific discoveries?",o:["New discoveries can be made by looking at old observations in a new way","Data from old experiments are rarely used to make new discoveries","Scientists need to work independently to make new discoveries","Scientific problems can only be solved by a group of people"],a:0},
+  {q:"Emma measures her breathing rate before and during exercise. Which statement explains the increase in her breathing rate?",o:["Cells require more nutrients over time","Cells need more oxygen as exercise becomes more strenuous","Cells require more water to regulate temperature","Cells need to produce more protein to build muscle"],a:1},
+  {q:"In what way can bacteria be good for the human body?",o:["Build strong bones","Maintain body temperature","Deliver oxygen to the cells","Break down food"],a:3},
+  {q:"From simplest to most complicated, how are animals and plants organised?",o:["Cell → tissue → organ → system","System → organ → tissue → cell","Organ → cell → tissue → system","Tissue → system → cell → organ"],a:0},
+  {q:"Athletes often experience muscle cramps after sprint races. Which of the following causes the cramps?",o:["Carbonic acid from aerobic respiration building up in the muscles","Lactic acid from anaerobic respiration building up in the muscles","The blood supply to the muscles being reduced","The blood supplying too much oxygen to the muscles"],a:1},
+  {q:"Emma measures the mass of some large rocks. Which units should she use to record her results?",o:["Pounds","Kilograms","Milligrams","Centimetres"],a:1},
+  {q:"Which statement about protons in elements is correct?",o:["Oxygen (O) has more protons than carbon (C)","Iron (Fe) has more protons than silver (Ag)","Sodium (Na) has more protons than chlorine (Cl)","Hydrogen (H) has more protons than helium (He)"],a:1},
+  {q:"Which group in the periodic table contains the noble gases?",o:["Group 1","Group 2","Group 7","Group 8 or 0"],a:3},
+  {q:"Natural gas and oil are fossil fuels that are formed from...",o:["Rocks that have been dissolved by water","Lava that has cooled","The remains of plants and animals","Minerals that have reacted with air and water"],a:2},
+  {q:"Soda water is water that has bubbles of carbon dioxide in it. Soda water is...",o:["A mixture","A molecule","An element","A compound"],a:0},
+  {q:"Photosynthesis and respiration are both parts of which cycle?",o:["The carbon cycle","The nitrogen cycle","The water cycle","The rock cycle"],a:0},
+  {q:"Which of the following best describes the mantle of the Earth?",o:["A thin layer of solid rock on the surface","A solid layer made of iron and nickel","A layer of semi-molten rock (magma)","A layer of molten iron and nickel"],a:2},
+  {q:"A tower of blocks remains standing. This is because of...",o:["Friction","Air resistance","Magnetism","Balanced forces"],a:3},
+  {q:"Which thermometer should be used to measure the temperature of very cold snow?",o:["A thermometer ranging from 0°C to 300°C","A thermometer ranging from -20°C to 110°C","A thermometer ranging from 35°C to 42°C","A thermometer ranging from 100°C to 250°C"],a:1},
+  {q:"Marek does three trials when sliding objects down a ramp. Why does he do three trials?",o:["To test several different materials","To make sure all objects travel the same distance","To predict the distance the next object will travel","To make sure the distance recorded is repeatable"],a:3},
+  {q:"What happens when water is changed from a liquid to a gas?",o:["The atoms lose electrons","A new compound is formed","Molecules spread further apart","Hydrogen is separated from oxygen"],a:2},
+  {q:"In a bottle of water, where is the pressure highest?",o:["At the top near the cap","At the water surface","At the bottom of the bottle","Equally throughout"],a:2},
+  {q:"Container 1 (30°C) is placed inside container 2 (70°C) for 30 minutes. Which temperatures are most likely after 30 minutes?",o:["Container 1: 70°C, Container 2: 30°C","Container 1: 50°C, Container 2: 50°C","Container 1: 40°C, Container 2: 100°C","Container 1: 22°C, Container 2: 20°C"],a:1},
+  {q:"Why is a kitten's appearance not identical to either of its parents?",o:["The kitten has a genetic disease","The kitten is not fully developed yet","The kitten did not have proper nutrition","The kitten gets half its genes from each parent, creating variety"],a:3},
+  {q:"Which statement best describes sexual reproduction in all animals?",o:["Egg and sperm join together","Pollen and seed join together","Offspring have characteristics of only one parent","Offspring are identical to one parent"],a:0},
+  {q:"Foxes can live in the same areas as humans because they...",o:["Live for a very long time","Are members of the dog family","Depend on humans for survival","Can adapt their lives to the presence of humans"],a:3},
+  {q:"A graph shows the number of species in different aquatic environments by salt concentration. Which aquatic environment is least able to support life?",o:["Fresh water","Brackish water","Seawater","Salt lakes"],a:3},
+  {q:"How do birds eating fruit help the reproductive cycle of plants?",o:["Plant seeds are dispersed over a wide area","Other predators are scared away","Nearby ground becomes fertilised","Old twigs and branches are removed"],a:0},
+  {q:"In an ocean food web, if the number of sea urchins increased, what would be the most likely effect?",o:["A decrease in the number of sea otters","A decrease in the amount of seaweed","A decrease in the amount of sunlight","A decrease in the number of parrotfish"],a:1},
+  {q:"A scientist completes her experiment. What should a different scientist do to check the original conclusion?",o:["Propose a different conclusion from the same data","Study the investigation reports to evaluate the conclusion","Change the current models to fit the conclusion","Develop new technologies based on the conclusion"],a:1},
+  {q:"When carrying out an experiment using chemicals, what must a student always do to ensure they are working safely?",o:["Work in large groups","Wear safety goggles","Wear short sleeves","Keep a window open"],a:1},
+  {q:"When a gas is heated, it will...",o:["Expand and fall","Expand and rise","Condense and fall","Condense and rise"],a:1},
+  {q:"Zara puts 250 cm³ of water into beakers at different temperatures for 12 hours. Which conclusion is supported by the data (less water remains at higher temperatures)?",o:["Water does not evaporate at 10°C","250 cm³ of water takes a long time to heat up","Water evaporates more quickly at a lower temperature","Water evaporates more quickly at a higher temperature"],a:3},
+  {q:"Jack investigates whether water cools faster with ice cubes or crushed ice. What information should be recorded to draw a conclusion?",o:["The mass of the ice added","The type of container used","The water temperature taken at regular intervals","The room temperature at the start and end"],a:2},
+  {q:"Kato drops food colouring into beakers of water at different temperatures and records how long it takes to diffuse. What can be concluded?",o:["Temperature has no effect on diffusion rate","Food colouring is less soluble at lower temperatures","The greater the temperature, the faster the diffusion rate","The lower the temperature, the shorter the time of diffusion"],a:2},
+  {q:"For scientific data, what is usually placed along the y-axis of a graph?",o:["Element symbols","Negative numbers","Dependent variables","Independent variables"],a:2},
+  {q:"Adam uses paper chromatography and compares his drink sample to three known food dyes. His sample matches dyes 2 and 3. Which dyes are in his soft drink?",o:["Dye 1 only","Dye 3 only","Dyes 1 and 2","Dyes 2 and 3"],a:3},
+  {q:"When salt is added to ice, the ice begins to melt because the salt...",o:["Raises the freezing point of the water","Lowers the freezing point of the water","Raises the boiling point of the water","Lowers the boiling point of the water"],a:1},
+  {q:"When Lily turns on the light, which energy transfer happens?",o:["Electrical → heat and light","Light → heat and electrical","Light → magnetic and electrical","Electrical → light and kinetic"],a:0},
+  {q:"How can Jenna best improve the reliability of her coin-flip results after 4 trials?",o:["Flip the coin one more time","Flip the coin six more times","Use a 50p coin instead","Use a different 10p coin for each trial"],a:1},
+  {q:"Dams hold back water. When water is released through turbines, which form of energy do the turbines generate?",o:["Solar energy","Thermal energy","Chemical energy","Electrical energy"],a:3},
+  {q:"Emma combs her hair and holds the comb near a flow of water — the water bends toward the comb. Why?",o:["The water has a positive charge and the comb is neutral","The water and comb have the same electrical charge","The water has a negative charge and the comb is neutral","The water and comb have opposite electrical charges"],a:3},
+  {q:"When a resistor is added to a circuit, the flow of electricity...",o:["Stops","Reverses direction","Decreases","Increases"],a:2},
+  {q:"Jack makes a simple electric motor. Which statement explains how it works?",o:["The magnet completes a circuit so an electric force turns the coil","Electric current makes the bottom of the coil hot so it flips over","Electricity makes the coil act like a magnet","The battery gives off heat that rises to make the coil spin"],a:2},
+  {q:"Mr Green leaves a garden hose on grass for several days. The grass underneath turns yellow. Why?",o:["The hose blocked sunlight so the grass stopped photosynthesising","The weight of the hose prevented water from flowing through the grass","The hose absorbed heat which burned the grass","The grass absorbed the colour of the hose"],a:0},
+  {q:"After a plant investigation, Emma is unsure how much water the plants were given. What could she do differently next time?",o:["Use a chart to record how much water each plant is given","Keep a full beaker of water next to the plants","Write down the dates the plants are watered","Have different people watering the plants each time"],a:0},
+  {q:"Why should a scientist share the results of her work with other scientists?",o:["It will make the scientist more intelligent","It allows the scientist to change her results later","It allows other scientists to repeat the investigation","It will prove that the scientist conducted the investigation herself"],a:2},
+  {q:"Which of these statements describes photosynthesis?",o:["Plants take in oxygen and release sugar","Plants take in sugar and release minerals","Plants take in minerals and release carbon dioxide","Plants take in carbon dioxide and release oxygen"],a:3},
+  {q:"Which structure in a plant cell allows it to make food?",o:["Cell wall","Cytoplasm","Chloroplast","Vacuole"],a:2},
+  {q:"Hassan compares antacid brands. Brand 1 (1.3g) neutralised 24.6 cm³ of acid, Brand 2 (1.9g) neutralised 24.4 cm³, Brand 3 (1.8g) neutralised 24.3 cm³. What can Hassan conclude?",o:["Brand 2 is more alkaline than brands 1 or 3","Brand 1 is more effective at neutralising acid than brands 2 or 3","The alkaline substance in brand 3 has the greatest density","The alkaline substance in brand 2 is different from the others"],a:1},
+  {q:"Zara mixes two chemicals and puts the beaker in ice. As the chemicals react, the ice starts to melt. The reaction is...",o:["Endothermic, because energy is absorbed","Endothermic, because energy is released","Exothermic, because energy is absorbed","Exothermic, because energy is released"],a:3},
+  {q:"Lily's graph shows that increasing temperature increases the rate of a chemical reaction. What is another valid conclusion?",o:["The reaction has reached its highest rate at 30°C","There is no chemical reaction below 10°C","This chemical reaction is fastest at 20°C","The reaction rate increases with temperature (confirmed at all measured points)"],a:3},
+  {q:"In the contact process, vanadium oxide (V₂O₅) is used. What is its function?",o:["To absorb excess heat","To increase the rate of the reaction","To reduce pressure on the reactants","To provide oxygen atoms to the products"],a:1},
+  {q:"What is formed when hydrochloric acid (HCl) reacts with sodium hydroxide (NaOH)?",o:["NaCl and H₂O","NaOH and HCl","HCl and NaCl","NaOH and H₂O"],a:0},
+  {q:"Iron can be produced by heating iron oxide with carbon. Which metal CANNOT be produced this way, using the reactivity series?",o:["Chromium","Manganese","Nickel","Lithium"],a:3},
+  {q:"A scientist tests hearing ranges: cat (50–64,000 Hz), cow (25–35,000 Hz), dog (65–45,000 Hz), horse (55–34,000 Hz). Which animal has the largest hearing range?",o:["Cat","Cow","Dog","Horse"],a:0},
+  {q:"On which object would your weight be nearest to your weight on Earth? (Mercury 0.38, Venus 0.91, Moon 0.17, Mars 0.38)",o:["Mercury","Venus","The Moon","Mars"],a:1},
+  {q:"Tam's model shows summer in the Southern Hemisphere. How can he change it to show summer in the Northern Hemisphere?",o:["Turn the torch away from the foam ball","Tilt the top of the wooden rod toward the torch","Make the foam ball hang lower than the torch","Increase the distance between the foam ball and torch"],a:1},
+  {q:"Why do leaves look green in the summer?",o:["Leaves absorb green light and reflect the other colours","Our eyes see green light produced by the leaves","Leaves reflect red and blue light, which our eyes see as green","Leaves reflect green light and absorb the other colours"],a:3},
+  {q:"Adam investigates whether water warms faster in a black bowl or white bowl. What is the independent variable?",o:["The length of time","The air temperature","The colour of the bowls","The water temperature"],a:2},
+  {q:"What is a light year?",o:["The brightness of starlight reaching Earth","The length of time a star has been emitting light","How far light can travel in one year","How many years light would take to travel to the Sun"],a:2},
+  {q:"Glasses help long-sighted people see as a result of...",o:["Absorption","Diffraction","Reflection","Refraction"],a:3},
+  {q:"Which property of light affects its colour?",o:["Intensity","Frequency","Speed","Amplitude"],a:1},
+  {q:"Iron is heated with sulphur to produce a new substance. Which test would best show it is a compound rather than a mixture?",o:["Iron is magnetic — if the substance is also magnetic, it is a compound","Iron reacts with acids — if the substance also reacts with acids, it is a compound","Iron and sulphur have different melting points — if the new substance's melting point differs from both, it is a compound","Iron is grey and sulphur is yellow — if the new colour differs from both, it is a compound"],a:2},
+];
+
+function shuffle(arr){
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+const LABELS=['A','B','C','D'];
+let session=[],cur=0,score=0,attempts=0,done=false;
+
+function startQuiz(){
+  session=shuffle(BANK).slice(0,40);
+  cur=0;score=0;
+  document.getElementById('start').style.display='none';
+  document.getElementById('end').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  showQ();
+}
+
+function showQ(){
+  attempts=0;done=false;
+  const item=session[cur];
+  document.getElementById('qlabel').textContent=`Question ${cur+1} of ${session.length}`;
+  document.getElementById('slabel').textContent=`Score: ${score}`;
+  document.getElementById('pfill').style.width=`${(cur/session.length)*100}%`;
+  document.getElementById('qtext').textContent=item.q;
+  document.getElementById('fb').className='fb';
+  document.getElementById('fb').textContent='';
+  document.getElementById('nxt').style.display='none';
+  const opts=document.getElementById('opts');
+  opts.innerHTML='';
+  item.o.forEach((txt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.innerHTML=`<span class="lbl">${LABELS[i]}</span><span>${txt}</span>`;
+    btn.onclick=()=>pick(i,btn);
+    opts.appendChild(btn);
+  });
+}
+
+function pick(i,btn){
+  if(done)return;
+  const item=session[cur];
+  const allBtns=document.querySelectorAll('.opt');
+  if(i===item.a){
+    done=true;score++;
+    btn.classList.add('correct');
+    allBtns.forEach(b=>b.setAttribute('disabled',''));
+    const fb=document.getElementById('fb');
+    fb.className='fb ok';
+    fb.textContent='Correct!';
+    const nxt=document.getElementById('nxt');
+    nxt.textContent=cur+1<session.length?'Next question →':'See my results';
+    nxt.style.display='inline-block';
+    document.getElementById('slabel').textContent=`Score: ${score}`;
+  } else {
+    attempts++;
+    btn.classList.add('wrong');
+    btn.setAttribute('disabled','');
+    const fb=document.getElementById('fb');
+    if(attempts>=3){
+      done=true;
+      allBtns.forEach(b=>b.setAttribute('disabled',''));
+      allBtns[item.a].classList.add('reveal');
+      fb.className='fb no';
+      fb.textContent=`Not this time. The correct answer was ${LABELS[item.a]}: ${item.o[item.a]}`;
+      const nxt=document.getElementById('nxt');
+      nxt.textContent=cur+1<session.length?'Next question →':'See my results';
+      nxt.style.display='inline-block';
+      document.getElementById('slabel').textContent=`Score: ${score}`;
+    } else {
+      fb.className='fb no';
+      fb.textContent=`Incorrect — try again! (${3-attempts} attempt${3-attempts===1?'':'s'} left)`;
+    }
+  }
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=session.length) showEnd();
+  else showQ();
+}
+
+function showEnd(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('end').style.display='block';
+  document.getElementById('pfill').style.width='100%';
+  const pct=Math.round((score/session.length)*100);
+  document.getElementById('escore').textContent=`${score} / ${session.length}`;
+  const msg=pct>=80?'Excellent work!':pct>=60?'Good effort — keep revising!':'Keep practising — you\'ll get there!';
+  document.getElementById('emsg').textContent=`${pct}% — ${msg}`;
+}
+</script>
